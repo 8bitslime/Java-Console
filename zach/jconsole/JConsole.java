@@ -2,6 +2,7 @@ package zach.jconsole;
 
 import java.awt.Color;
 import java.awt.Cursor;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.GraphicsEnvironment;
@@ -20,6 +21,7 @@ import java.util.Map.Entry;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenuBar;
@@ -125,7 +127,21 @@ public class JConsole {
 		window.setJMenuBar(menu);
 		window.setBackground(new Color(0, 0, 0, alpha));
 		
-		menu.add(new JLabel("  " + title));
+		BufferedImage bi = new BufferedImage(256, 256, BufferedImage.TYPE_INT_ARGB); //Making Image Icon
+		Graphics g = bi.getGraphics();
+		g.setColor(Color.decode("#0FFFF0")); //Just a nice green
+		g.fillRoundRect(10, 10, 236, 236, 100, 100);
+		window.setIconImage(bi);
+		
+		JLabel image = new JLabel(new ImageIcon(bi)) {
+			private static final long serialVersionUID = 1L;
+			public void paintComponent(Graphics g) {
+				g.drawImage(bi, 0, 0, 23, 23, null);
+			}
+		};
+		image.setPreferredSize(new Dimension(25, 23));
+		menu.add(image);
+		menu.add(new JLabel(title));
 		menu.setBackground(Color.LIGHT_GRAY);
 		menu.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 4));
 		menu.addMouseListener(new MouseListener() {
@@ -188,12 +204,6 @@ public class JConsole {
 				e.printStackTrace();
 			}
 		}
-		
-		BufferedImage bi = new BufferedImage(256, 256, BufferedImage.TYPE_INT_ARGB); //Making Image Icon
-		Graphics g = bi.getGraphics();
-		g.setColor(Color.decode("#0FFFF0")); //Just a nice green
-		g.fillRoundRect(10, 10, 236, 236, 100, 100);
-		window.setIconImage(bi);
 		
 		//Text Area
 		textField.setSize(400, 253);
@@ -317,14 +327,14 @@ public class JConsole {
 		commandsMap.put("color", new Command("color", new Action() {
 			public void perform(JConsole console, String[] args) {
 				try {
-				if (args[1].equalsIgnoreCase("background") || args[1].equalsIgnoreCase("bg")) {
+				if (args[1].equalsIgnoreCase("bg")) {
 					if (!args[2].contains("#"))
 						args[2] = "#" + args[2];
 					Color col = Color.decode(args[2]);
 					col = new Color(col.getRed(), col.getGreen(), col.getBlue(), alpha);
 					console.textField.setBackground(col);
 				}
-				else if (args[1].equalsIgnoreCase("foreground") || args[1].equalsIgnoreCase("fg")) {
+				else if (args[1].equalsIgnoreCase("fg")) {
 					if (!args[2].contains("#"))
 						args[2] = "#" + args[2];
 					console.textField.setForeground(Color.decode(args[2]));
@@ -352,7 +362,7 @@ public class JConsole {
 		}) {
 			public String getHelpString() {
 				return "Change the console colors"
-					 + "\narg1 = background/bg | foreground/fg | border | default"
+					 + "\narg1 = bg | fg | border | default"
 					 + "\narg2 = color (hexadecimal)";
 			}
 		});
