@@ -30,8 +30,7 @@ import javax.swing.UIManager;
 public class JConsole {
 	
 	public static boolean PARSE_IGNORE_CAPS = false;
-	public static int ALPHA = 0xAA;
-	public static final double version = 0.1;
+	public static final double version = 1.d;
 	
 	public interface Action {
 		public void perform(JConsole console, String[] args);
@@ -64,9 +63,7 @@ public class JConsole {
 	private JLabel minButton;
 	
 	public JConsole(String title, String initText, boolean useDefaultCommands, boolean exitOnClose) {
-		if (ALPHA >= 255)
-			ALPHA = 254; //Prevent Java Swing + Transparency artifacts
-		alpha = ALPHA;
+		alpha = 0x99;
 		
 		commandsMap.put("?", new Command("?", new Action() {
 			public void perform(JConsole console, String[] args) {
@@ -342,8 +339,12 @@ public class JConsole {
 					console.scroll.setBorder(BorderFactory.createLineBorder(col, 3));
 				}
 				else if (args[1].equalsIgnoreCase("default")) {
+					console.menu.setBackground(Color.LIGHT_GRAY);
+					console.menu.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 4));
+					console.scroll.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 3));
 					console.textField.setForeground(Color.WHITE);
-					console.textField.setBackground(Color.BLACK);
+					console.textField.setCaretColor(Color.WHITE);
+					console.textField.setBackground(new Color(0, 0, 0, alpha));
 				}
 				} catch (ArrayIndexOutOfBoundsException e) {}
 				  catch (NumberFormatException e) {}
