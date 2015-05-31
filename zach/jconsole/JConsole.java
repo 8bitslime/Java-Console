@@ -66,6 +66,7 @@ public class JConsole {
 	private JLabel xButton;
 	private JLabel minButton;
 	
+	private boolean resize;
 	private JPanel east;
 	private JPanel south;
 	private JPanel west;
@@ -301,10 +302,12 @@ public class JConsole {
 		west.addMouseMotionListener(new MouseMotionListener() {
 			public void mouseMoved(MouseEvent e) {}
 			public void mouseDragged(MouseEvent e) {
-				int newSize = -e.getX() + window.getWidth() + prevPos[0];
-				if (newSize < 230) return;
-				window.setSize(newSize, window.getHeight());
-				window.setLocation(e.getXOnScreen() - prevPos[0], window.getY());
+				if (resize) {
+					int newSize = -e.getX() + window.getWidth() + prevPos[0];
+					if (newSize < 230) return;
+					window.setSize(newSize, window.getHeight());
+					window.setLocation(e.getXOnScreen() - prevPos[0], window.getY());
+				}
 			}
 		});
 		
@@ -324,9 +327,11 @@ public class JConsole {
 		east.addMouseMotionListener(new MouseMotionListener() {
 			public void mouseMoved(MouseEvent e) {}
 			public void mouseDragged(MouseEvent e) {
-				int newSize = e.getX() + window.getWidth() - prevPos[0];
-				if (newSize < 230) newSize = 230;
-				window.setSize(newSize, window.getHeight());
+				if (resize) {
+					int newSize = e.getX() + window.getWidth() - prevPos[0];
+					if (newSize < 230) newSize = 230;
+					window.setSize(newSize, window.getHeight());
+				}
 			}
 		});
 		
@@ -346,9 +351,11 @@ public class JConsole {
 		south.addMouseMotionListener(new MouseMotionListener() {
 			public void mouseMoved(MouseEvent e) {}
 			public void mouseDragged(MouseEvent e) {
-				int newSize = e.getY() + window.getHeight() - prevPos[1];
-				if (newSize < 50) newSize = 50;
-				window.setSize(window.getWidth(), newSize);
+				if (resize) {
+					int newSize = e.getY() + window.getHeight() - prevPos[1];
+					if (newSize < 50) newSize = 50;
+					window.setSize(window.getWidth(), newSize);
+				}
 			}
 		});
 		
@@ -409,6 +416,16 @@ public class JConsole {
 		window.setLocationRelativeTo(null);
 		window.setVisible(true);
 	}
+	
+	public void setResizable(boolean resizable) {
+		resize = resizable;
+		south.setCursor(new Cursor(resizable ? Cursor.S_RESIZE_CURSOR : Cursor.DEFAULT_CURSOR));
+		west.setCursor(new Cursor(resizable ? Cursor.W_RESIZE_CURSOR : Cursor.DEFAULT_CURSOR));
+		east.setCursor(new Cursor(resizable ? Cursor.E_RESIZE_CURSOR : Cursor.DEFAULT_CURSOR));
+		sw.setCursor(new Cursor(resizable ? Cursor.SW_RESIZE_CURSOR : Cursor.DEFAULT_CURSOR));
+		se.setCursor(new Cursor(resizable ? Cursor.SE_RESIZE_CURSOR : Cursor.DEFAULT_CURSOR));
+	}
+	
 	private int getLastLine() {
 		int lastLine = textField.getText().length();
 		for (int i = lastLine-1; i >= 0; i--)
@@ -579,6 +596,6 @@ public class JConsole {
 	
 	public static void main(String args[]) { //Just a test main, do not use this in application
 		JConsole.PARSE_IGNORE_CAPS = true;
-		new JConsole("Java Console [DEFAULT]", "Default Java Console by Zachary Wells\nType '?' for help", true, true);
+		new JConsole("Java Console [DEFAULT]", "Default Java Console by Zachary Wells\nType '?' for help", true, true).setResizable(true);
 	}
 }
