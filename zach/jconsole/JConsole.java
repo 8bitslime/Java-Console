@@ -1,5 +1,6 @@
 package zach.jconsole;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -25,6 +26,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenuBar;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.UIManager;
@@ -63,6 +65,12 @@ public class JConsole {
 	private int[] prevPos = new int[2];
 	private JLabel xButton;
 	private JLabel minButton;
+	
+	private JPanel east;
+	private JPanel south;
+	private JPanel west;
+	private JPanel sw;
+	private JPanel se;
 	
 	public JConsole(String title, String initText, boolean useDefaultCommands, boolean exitOnClose) {
 		alpha = 0x99;
@@ -211,7 +219,7 @@ public class JConsole {
 		textField.setBackground(new Color(0, 0, 0, alpha));
 		textField.setForeground(new Color(0xFF, 0xFF, 0xFF, 0xFF));
 		textField.setCaretColor(new Color(0xFF, 0xFF, 0xFF, 0xFF));
-		textField.setLineWrap(true);
+		textField.setLineWrap(false);
 		//Text Area Event Listeners
 		textField.addKeyListener(new KeyListener() {
 			public void keyPressed(KeyEvent e) {
@@ -274,10 +282,129 @@ public class JConsole {
 		
 		//Scroll Pane
 		scroll = new JScrollPane(textField);
-		scroll.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 3));
+		scroll.setBorder(null);
+		
+		//Resize grabbing stuff
+		west = new JPanel();
+		west.setBackground(Color.LIGHT_GRAY);
+		west.setPreferredSize(new Dimension(5, 100));
+		west.setCursor(new Cursor(Cursor.W_RESIZE_CURSOR));
+		west.addMouseListener(new MouseListener() {
+			public void mouseClicked(MouseEvent e) {}
+			public void mouseReleased(MouseEvent e) {}
+			public void mouseEntered(MouseEvent e) {}
+			public void mouseExited(MouseEvent e) {}
+			public void mousePressed(MouseEvent e) {
+				prevPos[0] = e.getX();
+			}
+		});
+		west.addMouseMotionListener(new MouseMotionListener() {
+			public void mouseMoved(MouseEvent e) {}
+			public void mouseDragged(MouseEvent e) {
+				int newSize = -e.getX() + window.getWidth() + prevPos[0];
+				if (newSize < 230) return;
+				window.setSize(newSize, window.getHeight());
+				window.setLocation(e.getXOnScreen() - prevPos[0], window.getY());
+			}
+		});
+		
+		east = new JPanel();
+		east.setBackground(Color.LIGHT_GRAY);
+		east.setPreferredSize(new Dimension(5, 100));
+		east.setCursor(new Cursor(Cursor.E_RESIZE_CURSOR));
+		east.addMouseListener(new MouseListener() {
+			public void mouseClicked(MouseEvent e) {}
+			public void mouseReleased(MouseEvent e) {}
+			public void mouseEntered(MouseEvent e) {}
+			public void mouseExited(MouseEvent e) {}
+			public void mousePressed(MouseEvent e) {
+				prevPos[0] = e.getX();
+			}
+		});
+		east.addMouseMotionListener(new MouseMotionListener() {
+			public void mouseMoved(MouseEvent e) {}
+			public void mouseDragged(MouseEvent e) {
+				int newSize = e.getX() + window.getWidth() - prevPos[0];
+				if (newSize < 230) newSize = 230;
+				window.setSize(newSize, window.getHeight());
+			}
+		});
+		
+		south = new JPanel();
+		south.setBackground(Color.LIGHT_GRAY);
+		south.setPreferredSize(new Dimension(100, 5));
+		south.setCursor(new Cursor(Cursor.S_RESIZE_CURSOR));
+		south.addMouseListener(new MouseListener() {
+			public void mouseClicked(MouseEvent e) {}
+			public void mouseReleased(MouseEvent e) {}
+			public void mouseEntered(MouseEvent e) {}
+			public void mouseExited(MouseEvent e) {}
+			public void mousePressed(MouseEvent e) {
+				prevPos[1] = e.getY();
+			}
+		});
+		south.addMouseMotionListener(new MouseMotionListener() {
+			public void mouseMoved(MouseEvent e) {}
+			public void mouseDragged(MouseEvent e) {
+				int newSize = e.getY() + window.getHeight() - prevPos[1];
+				if (newSize < 50) newSize = 50;
+				window.setSize(window.getWidth(), newSize);
+			}
+		});
+		
+		sw = new JPanel();
+		sw.setBackground(Color.LIGHT_GRAY);
+		sw.setPreferredSize(new Dimension(5, 5));
+		sw.setCursor(new Cursor(Cursor.SW_RESIZE_CURSOR));
+		sw.addMouseListener(new MouseListener() {
+			public void mouseClicked(MouseEvent e) {}
+			public void mouseReleased(MouseEvent e) {}
+			public void mouseEntered(MouseEvent e) {}
+			public void mouseExited(MouseEvent e) {}
+			public void mousePressed(MouseEvent e) {
+				south.getMouseListeners()[0].mousePressed(e);
+				west.getMouseListeners()[0].mousePressed(e);
+			}
+		});
+		sw.addMouseMotionListener(new MouseMotionListener() {
+			public void mouseMoved(MouseEvent e) {}
+			public void mouseDragged(MouseEvent e) {
+				south.getMouseMotionListeners()[0].mouseDragged(e);
+				west.getMouseMotionListeners()[0].mouseDragged(e);
+			}
+		});
+		
+		se = new JPanel();
+		se.setBackground(Color.LIGHT_GRAY);
+		se.setPreferredSize(new Dimension(5, 5));
+		se.setCursor(new Cursor(Cursor.SE_RESIZE_CURSOR));
+		se.addMouseListener(new MouseListener() {
+			public void mouseClicked(MouseEvent e) {}
+			public void mouseReleased(MouseEvent e) {}
+			public void mouseEntered(MouseEvent e) {}
+			public void mouseExited(MouseEvent e) {}
+			public void mousePressed(MouseEvent e) {
+				south.getMouseListeners()[0].mousePressed(e);
+				east.getMouseListeners()[0].mousePressed(e);
+			}
+		});
+		se.addMouseMotionListener(new MouseMotionListener() {
+			public void mouseMoved(MouseEvent e) {}
+			public void mouseDragged(MouseEvent e) {
+				south.getMouseMotionListeners()[0].mouseDragged(e);
+				east.getMouseMotionListeners()[0].mouseDragged(e);
+			}
+		});
+		
+		south.setLayout(new BorderLayout());
+		south.add(sw, BorderLayout.WEST);
+		south.add(se, BorderLayout.EAST);
 		
 		//Finalize window
-		window.add(scroll);
+		window.add(scroll, BorderLayout.CENTER);
+		window.add(west, BorderLayout.WEST);
+		window.add(east, BorderLayout.EAST);
+		window.add(south, BorderLayout.SOUTH);
 		window.setSize(textField.getSize());
 		window.setLocationRelativeTo(null);
 		window.setVisible(true);
@@ -346,12 +473,20 @@ public class JConsole {
 					Color col = Color.decode(args[2]);
 					console.menu.setBackground(col);
 					console.menu.setBorder(BorderFactory.createLineBorder(col, 4));
-					console.scroll.setBorder(BorderFactory.createLineBorder(col, 3));
+					console.south.setBackground(col);
+					console.west.setBackground(col);
+					console.east.setBackground(col);
+					console.sw.setBackground(col);
+					console.se.setBackground(col);
 				}
 				else if (args[1].equalsIgnoreCase("default")) {
 					console.menu.setBackground(Color.LIGHT_GRAY);
 					console.menu.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 4));
-					console.scroll.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 3));
+					console.south.setBackground(Color.LIGHT_GRAY);
+					console.west.setBackground(Color.LIGHT_GRAY);
+					console.east.setBackground(Color.LIGHT_GRAY);
+					console.sw.setBackground(Color.LIGHT_GRAY);
+					console.se.setBackground(Color.LIGHT_GRAY);
 					console.textField.setForeground(Color.WHITE);
 					console.textField.setCaretColor(Color.WHITE);
 					console.textField.setBackground(new Color(0, 0, 0, alpha));
