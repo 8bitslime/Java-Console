@@ -7,6 +7,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.GraphicsEnvironment;
+import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -36,22 +37,6 @@ public class JConsole {
 	public static boolean PARSE_IGNORE_CAPS = false;
 	public static final double version = 1.d;
 	
-	public interface Action {
-		public void perform(JConsole console, String[] args);
-	}
-	public class Command {
-		private String command;
-		private Action action;
-		public Command(String command, Action action) {
-			this.command = command;
-			this.action = action;
-		}
-		public final void perform(JConsole console, String[] args) { action.perform(console, args); }
-		public final String getCommand() { return command; }
-		public String getHelpString() { return "Default Help String"; }
-		public String toString() { return getCommand(); }
-	}
-	
 	private Map<String, Command> commandsMap = new HashMap<String, Command>();
 	
 	private JFrame window;
@@ -64,9 +49,11 @@ public class JConsole {
 	private JMenuBar menu;
 	private int[] prevPos = new int[2];
 	private JLabel xButton;
+	private JLabel maxButton;
 	private JLabel minButton;
 	
-	private boolean resize;
+	private boolean resize = true;
+	private boolean max = false;
 	private JPanel east;
 	private JPanel south;
 	private JPanel west;
@@ -125,6 +112,7 @@ public class JConsole {
 		textField.setOpaque(false);
 		menu = new JMenuBar();
 		xButton = new JLabel(" X ");
+		maxButton = new JLabel(" \u25A0 ");
 		minButton = new JLabel(" _ ");
 		newLine(false);
 		
@@ -162,6 +150,9 @@ public class JConsole {
 				prevPos[1] = e.getY();
 			}
 			public void mouseReleased(MouseEvent e) {
+				if (e.getYOnScreen() <= 1 && resize) {
+					setMaximized(true);
+				}
 				if (window.getY() < 0)
 					window.setLocation(window.getX(), 0);
 				else if (window.getY() >= GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds().height - menu.getHeight())
@@ -171,12 +162,19 @@ public class JConsole {
 		});
 		menu.addMouseMotionListener(new MouseMotionListener() {
 			public void mouseDragged(MouseEvent e) {
+				if (max) {
+					setMaximized(false);
+					window.setLocation(e.getXOnScreen() - window.getWidth()/2, 11);
+					prevPos[0] = window.getWidth() / 2;
+					prevPos[1] = 11;
+				} else
 				window.setLocation(window.getX() + e.getX() - prevPos[0], window.getY() + e.getY() - prevPos[1]);
 			}
 			public void mouseMoved(MouseEvent e) {}
 		});
-		menu.add(Box.createHorizontalGlue());
+		menu.add(Box.createHorizontalGlue());		
 		menu.add(minButton);
+		minButton.setFont(font);
 		minButton.setBorder(BorderFactory.createLineBorder(new Color(0x334433)));
 		minButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
 		minButton.addMouseListener(new MouseListener() {
@@ -188,7 +186,21 @@ public class JConsole {
 			public void mousePressed(MouseEvent e) {}
 			public void mouseReleased(MouseEvent e) {}
 		});
+		menu.add(maxButton);
+		maxButton.setFont(font);
+		maxButton.setBorder(BorderFactory.createLineBorder(new Color(0x334433)));
+		maxButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+		maxButton.addMouseListener(new MouseListener() {
+			public void mouseClicked(MouseEvent e) {
+				setMaximized(!max);
+			}
+			public void mouseEntered(MouseEvent e) {}
+			public void mouseExited(MouseEvent e) {}
+			public void mousePressed(MouseEvent e) {}
+			public void mouseReleased(MouseEvent e) {}
+		});
 		menu.add(xButton);
+		xButton.setFont(font);
 		xButton.setBorder(BorderFactory.createLineBorder(new Color(0x334433)));
 		xButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
 		xButton.addMouseListener(new MouseListener() {
@@ -303,6 +315,12 @@ public class JConsole {
 			public void mouseMoved(MouseEvent e) {}
 			public void mouseDragged(MouseEvent e) {
 				if (resize) {
+					if (max) {
+						int w = window.getWidth(), h = window.getHeight();
+						setMaximized(false);
+						window.setSize(w, h);
+						window.setLocation(window.getX(), 0);
+					}
 					int newSize = -e.getX() + window.getWidth() + prevPos[0];
 					if (newSize < 230) return;
 					window.setSize(newSize, window.getHeight());
@@ -328,6 +346,12 @@ public class JConsole {
 			public void mouseMoved(MouseEvent e) {}
 			public void mouseDragged(MouseEvent e) {
 				if (resize) {
+					if (max) {
+						int w = window.getWidth(), h = window.getHeight();
+						setMaximized(false);
+						window.setSize(w, h);
+						window.setLocation(0, 0);
+					}
 					int newSize = e.getX() + window.getWidth() - prevPos[0];
 					if (newSize < 230) newSize = 230;
 					window.setSize(newSize, window.getHeight());
@@ -352,6 +376,12 @@ public class JConsole {
 			public void mouseMoved(MouseEvent e) {}
 			public void mouseDragged(MouseEvent e) {
 				if (resize) {
+					if (max) {
+						int w = window.getWidth(), h = window.getHeight();
+						setMaximized(false);
+						window.setSize(w, h);
+						window.setLocation(0, 0);
+					}
 					int newSize = e.getY() + window.getHeight() - prevPos[1];
 					if (newSize < 50) newSize = 50;
 					window.setSize(window.getWidth(), newSize);
@@ -419,11 +449,31 @@ public class JConsole {
 	
 	public void setResizable(boolean resizable) {
 		resize = resizable;
+		if (!resize && max) {
+			int w = window.getWidth(), h = window.getHeight();
+			setMaximized(false);
+			window.setSize(w, h);
+			window.setLocation(0, 0);
+		}
 		south.setCursor(new Cursor(resizable ? Cursor.S_RESIZE_CURSOR : Cursor.DEFAULT_CURSOR));
 		west.setCursor(new Cursor(resizable ? Cursor.W_RESIZE_CURSOR : Cursor.DEFAULT_CURSOR));
 		east.setCursor(new Cursor(resizable ? Cursor.E_RESIZE_CURSOR : Cursor.DEFAULT_CURSOR));
 		sw.setCursor(new Cursor(resizable ? Cursor.SW_RESIZE_CURSOR : Cursor.DEFAULT_CURSOR));
 		se.setCursor(new Cursor(resizable ? Cursor.SE_RESIZE_CURSOR : Cursor.DEFAULT_CURSOR));
+		maxButton.setVisible(resizable);
+		
+	}
+	
+	public void setMaximized(boolean max) {
+		this.max = max;
+		if (max) {
+			GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+			Rectangle bounds = ge.getMaximumWindowBounds();
+			window.setMaximizedBounds(bounds);
+			window.setExtendedState(JFrame.MAXIMIZED_BOTH);
+		} else {
+			window.setExtendedState(JFrame.NORMAL);
+		}
 	}
 	
 	private int getLastLine() {
@@ -596,6 +646,6 @@ public class JConsole {
 	
 	public static void main(String args[]) { //Just a test main, do not use this in application
 		JConsole.PARSE_IGNORE_CAPS = true;
-		new JConsole("Java Console [DEFAULT]", "Default Java Console by Zachary Wells\nType '?' for help", true, true).setResizable(true);
+		new JConsole("Java Console [DEFAULT]", "Default Java Console by Zachary Wells\nType '?' for help", true, true);
 	}
 }
