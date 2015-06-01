@@ -136,7 +136,7 @@ public class JConsole {
 		window.setJMenuBar(menu);
 		window.setBackground(new Color(0, 0, 0, alpha));
 		
-		BufferedImage bi = new BufferedImage(256, 256, BufferedImage.TYPE_INT_ARGB); //Making Image Icon
+		final BufferedImage bi = new BufferedImage(256, 256, BufferedImage.TYPE_INT_ARGB); //Making Image Icon
 		Graphics g = bi.getGraphics();
 		g.setColor(Color.decode("#0FFFF0")); //Just a nice green
 		g.fillRoundRect(10, 10, 236, 236, 100, 100);
