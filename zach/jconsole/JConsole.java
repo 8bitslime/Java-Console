@@ -305,8 +305,8 @@ public class JConsole {
 				if (resize) {
 					int newSize = -e.getX() + window.getWidth() + prevPos[0];
 					if (newSize < 230) return;
-					window.setSize(newSize, window.getHeight());
 					window.setLocation(e.getXOnScreen() - prevPos[0], window.getY());
+					window.setSize(newSize, window.getHeight());
 				}
 			}
 		});
